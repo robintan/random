@@ -22,9 +22,9 @@ int main(int argc, char **argv)
 	MPI_Comm comm = MPI_COMM_WORLD;
 	MPI_Init(&argc, &argv);
 	// Get the process rank
-  MPI_Comm_rank(comm, &myrank);
-  // Get the number of the processes
-  MPI_Comm_size(comm, &p);
+  	MPI_Comm_rank(comm, &myrank);
+  	// Get the number of the processes
+  	MPI_Comm_size(comm, &p);
 
  
 	//sequential computation
