@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 		memcpy(ref, mat, sizeof(int)*N*N);
 		printf("Executing sequentially ...\n");
 		gettimeofday(&start,0);
-		//ST_APSP(ref, N);
+		ST_APSP(ref, N);
 		gettimeofday(&end, 0);
 		//printf("Ref:\n");
 		//printMatrix(ref,N,1);
