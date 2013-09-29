@@ -31,8 +31,7 @@ void ST_APSP(int *mat, const size_t N)
 {
 	for(int k = 0; k < N; k ++)
 		for(int i = 0; i < N; i ++)
-			for(int j = 0; j < N; j ++)
-			{
+			for(int j = 0; j < N; j ++) {
 				int i0 = i*N + j;	//i0 = mat[i][j]
 				int i1 = i*N + k;	//i1 = mat[i][k]
 				int i2 = k*N + j;	//i2 = mat[k][j]
@@ -44,40 +43,36 @@ void ST_APSP(int *mat, const size_t N)
   Multiple thread (Parallel) APSP on CPU
 */
 void MT_APSP(int *part, const size_t N, MPI_Comm comm, int myrank, int p) {
-  int s = N/p;
-  int root, offset;
-  int *temp = (int*)malloc(sizeof(int)*N);
-	//printf("Local: %d\n",myrank);
-	//printMatrix(part,N,p);
+	int s = N/p;
+	int root, offset;
+	int *temp = (int*)malloc(sizeof(int)*N);
 
-  for (int k = 0; k < N; k++) {
-    root = k/s;
-    if (myrank == root) {
-      offset = k - myrank*s;
-      for (int j = 0; j < N; j++) 
+	for (int k = 0; k < N; k++) {
+		root = k/s;
+		if (myrank == root) {
+			offset = k - myrank*s;
+			for (int j = 0; j < N; j++) 
 				temp[j] = part[offset*N + j];
-    } 
-		//printf("Temp: %d\n",myrank);
-		//printMatrix(temp,N,N);
-    MPI_Bcast(temp, N, MPI_INT, root, comm);
-    for(int i = 0; i < s; i ++)
+		} 
+		MPI_Bcast(temp, N, MPI_INT, root, comm);
+		for(int i = 0; i < s; i ++)
 			for(int j = 0; j < N; j ++) {
 				int i0 = i*N + j;
 				int i1 = i*N + k;
 				if (part[i1] != -1 && temp[j] != -1)
 					part[i0] = min(part[i0], part[i1] + temp[j]);
 			}
-  }
+	}
 }
 
 void printMatrix (int *mat, const size_t N, int p) {
-  for (int i = 0; i < N/p; i++) {
-    for(int j = 0; j < N ; j++) {
-      int value = mat[i*N + j];
+	for (int i = 0; i < N/p; i++) {
+		for(int j = 0; j < N ; j++) {
+			int value = mat[i*N + j];
 			printf("%d\t", value);
-    }
-    printf("\n");
-  }
+		}
+		printf("\n");
+	}
 }
 
 
