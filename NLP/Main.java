@@ -40,7 +40,7 @@ public class Main {
 		String docText = "";
 		//get the review text
 		while(in.hasNext())
-			docText += in.next();
+			docText += " " + in.next();
 		
 		int startIndex = docText.indexOf("<text>") + "<text>".length();
 		int endIndex = docText.indexOf("</text>");
