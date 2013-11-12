@@ -256,6 +256,11 @@ void runFloyd_sharedCoalesced(int *result, const size_t N)
 int
 main(int argc, char **argv)
 {
+	cudaEvent_t begin, stop;
+	cudaEventCreate(&begin);
+	cudaEventCreate(&stop);
+	float dt_ms;
+	long int usec;	
 	struct timeval start, end;
 	
 	if (argc < 1) {
@@ -276,15 +281,21 @@ main(int argc, char **argv)
 	gettimeofday(&start,0);
 	ST_APSP(ref, N);
 	gettimeofday(&end,0);
-	printf("Sequential execution time = %ld usecs \n\n", (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec));
+        printf("Sequential execution time = %ld usecs \n\n", (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec));
     
 	// PERFORM COMPUTATION ON GPU
 	int *result = (int*)malloc(sizeof(int) * N * N);
 	memcpy(result, mat, sizeof(int)*N*N);
-	gettimeofday(&start,0);
+	cudaEventRecord(begin,0);
   	runFloyd(result, N);
-	gettimeofday(&end,0);
-	printf("GPU execution time = %ld usecs \n", (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec));
+	cudaEventRecord(stop,0);
+
+	cudaEventSynchronize(begin);
+	cudaEventSynchronize(stop);
+	
+	cudaEventElapsedTime(&dt_ms, begin, stop);
+	usec = dt_ms *1000;
+	printf("CUDA Normal execution time = % ld usecs \n",usec);
 
 	// compare your result with reference result
 	if(CmpArray(result, ref, N * N))	printf("Your result is correct.\n\n");
@@ -294,43 +305,54 @@ main(int argc, char **argv)
 	// PERFORM COMPUTATION ON GPU WITH MEMORY COALESCING METHOD
 	int *coalesced_result = (int*)malloc(sizeof(int) * N * N);
 	memcpy(coalesced_result, mat, sizeof(int)*N*N);
-	gettimeofday(&start,0);
+	cudaEventRecord(begin,0);
 	runFloyd_coalescing(coalesced_result, N);
-	gettimeofday(&end,0);
-	printf("Coalesced execution time = %ld usecs \n", (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec));
+	cudaEventRecord(stop,0);
+	cudaEventSynchronize(begin);
+	cudaEventSynchronize(stop);
 	
+	cudaEventElapsedTime(&dt_ms, begin, stop);
+	usec = dt_ms *1000;
+	printf("CUDA Coalescing execution time = % ld usecs \n",usec);
+
 	if(CmpArray(coalesced_result, ref, N * N))	printf("Your result is correct.\n\n");
 	else								printf("Your result is wrong.\n\n");
 	
 	// PERFORM COMPUTATION ON GPU WITH MEMORY TILING SHARED MEMORY METHOD
 	int *shared_result = (int*)malloc(sizeof(int) * N * N);
 	memcpy(shared_result, mat, sizeof(int)*N*N);
-	gettimeofday(&start,0);
+	cudaEventRecord(begin,0);
 	runFloyd_shared(shared_result, N);
-	gettimeofday(&end,0);
-	printf("Shared Memory execution time = %ld usecs \n", (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec));
+	cudaEventRecord(stop,0);
+	cudaEventSynchronize(begin);
+	cudaEventSynchronize(stop);
 	
+	cudaEventElapsedTime(&dt_ms, begin, stop);
+	usec = dt_ms *1000;
+	printf("CUDA SM execution time = % ld usecs \n",usec);
+
 	if(CmpArray(shared_result, ref, N * N))	printf("Your result is correct.\n\n");
 	else								printf("Your result is wrong.\n\n");
-
-	// printf("Ori\n");
-	// printMatrix(mat, N);
-	// printf("Result\n");
-	// printMatrix(result, N);
-	// printf("Shared Result\n");
-	// printMatrix(shared_result, N);
 	
 	// PERFORM COMPUTATION ON GPU WITH MEMORY TILING SHARED MEMORY AND COALESCING METHOD METHOD
 	int *shared_coalesced_result = (int*)malloc(sizeof(int) * N * N);
 	memcpy(shared_coalesced_result, mat, sizeof(int)*N*N);
-	gettimeofday(&start,0);
+	cudaEventRecord(begin,0);
 	runFloyd_sharedCoalesced(shared_coalesced_result, N);
-	gettimeofday(&end,0);
-	printf("Shared Coalesced execution time = %ld usecs \n", (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec));
+	cudaEventRecord(stop,0);
+
+	cudaEventSynchronize(begin);
+	cudaEventSynchronize(stop);
+	
+	cudaEventElapsedTime(&dt_ms, begin, stop);
+	usec = dt_ms *1000;
+	printf("CUDA SM+Coalesceing execution time = % ld usecs \n",usec);
 	
 	if(CmpArray(shared_coalesced_result, ref, N * N))	printf("Your result is correct.\n\n");
-	else								printf("Your result is wrong.\n\n");
-		
+	else												printf("Your result is wrong.\n\n");
+
+	cudaEventDestroy(begin);
+	cudaEventDestroy(stop);
 }
 
 
